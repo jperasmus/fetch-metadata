@@ -29,6 +29,11 @@ app.use(
     disallowedNavigationRequests: ['object', 'embed'],
     allowedPaths: [],
     errorStatusCode: 403,
+    onError: (request, response, next, options) => {
+      // Responds with `errorStatusCode` by default
+      response.statusCode = options.errorStatusCode
+      response.end()
+    },
   })
 )
 ```

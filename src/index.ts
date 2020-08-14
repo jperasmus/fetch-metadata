@@ -13,11 +13,19 @@ const getSecFetchHeaders = (req: IncomingMessage) => {
   }
 }
 
+type Next = (error?: Error) => void
+
 type Config = {
   allowedFetchSites: string[]
   disallowedNavigationRequests: string[]
   allowedPaths: string[]
   errorStatusCode: number
+  onError: (
+    request: IncomingMessage,
+    response: ServerResponse,
+    next: Next,
+    options: Config
+  ) => void
 }
 
 const CONFIG_DEFAULTS: Config = {
@@ -25,6 +33,10 @@ const CONFIG_DEFAULTS: Config = {
   disallowedNavigationRequests: ['object', 'embed'],
   allowedPaths: [],
   errorStatusCode: 403,
+  onError: (req, res, next, options) => {
+    res.statusCode = options.errorStatusCode
+    res.end()
+  },
 }
 
 function middlewareWrapper(config: Partial<Config> = {}) {
@@ -33,7 +45,7 @@ function middlewareWrapper(config: Partial<Config> = {}) {
   return function middleware(
     req: IncomingMessage,
     res: ServerResponse,
-    next: () => void
+    next: Next
   ) {
     const { secFetchSite, secFetchMode, secFetchDest } = getSecFetchHeaders(req)
 
@@ -69,8 +81,7 @@ function middlewareWrapper(config: Partial<Config> = {}) {
       return next()
     }
 
-    res.statusCode = options.errorStatusCode
-    res.end()
+    options.onError(req, res, next, options)
   }
 }
 
