@@ -33,6 +33,7 @@ const CONFIG_DEFAULTS: Config = {
   disallowedNavigationRequests: ['object', 'embed'],
   allowedPaths: [],
   errorStatusCode: 403,
+  // @ts-expect-error
   onError: (req, res, next, options) => {
     res.statusCode = options.errorStatusCode
     res.end()
