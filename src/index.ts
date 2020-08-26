@@ -1,29 +1,22 @@
 import { IncomingMessage, ServerResponse } from 'http'
+import UrlPattern from 'url-pattern'
 
-const extractHeader = (req: IncomingMessage, header: string): string => {
-  const reqHeader = req.headers[header]
-  return Array.isArray(reqHeader) ? reqHeader.join(',') : reqHeader || ''
+type AllowedPath = {
+  path: string
+  method?: string
 }
 
-const getSecFetchHeaders = (req: IncomingMessage) => {
-  return {
-    secFetchSite: extractHeader(req, 'sec-fetch-site'),
-    secFetchMode: extractHeader(req, 'sec-fetch-mode'),
-    secFetchDest: extractHeader(req, 'sec-fetch-dest'),
-  }
-}
-
-type Next = (error?: Error) => void
+type NextFn = (error?: Error) => void
 
 type Config = {
   allowedFetchSites: string[]
   disallowedNavigationRequests: string[]
-  allowedPaths: string[]
+  allowedPaths: (string | AllowedPath)[]
   errorStatusCode: number
   onError: (
     request: IncomingMessage,
     response: ServerResponse,
-    next: Next,
+    next: NextFn,
     options: Config
   ) => void
 }
@@ -40,13 +33,56 @@ const CONFIG_DEFAULTS: Config = {
   },
 }
 
+const extractHeader = (req: IncomingMessage, header: string): string => {
+  const reqHeader = req.headers[header]
+  return Array.isArray(reqHeader) ? reqHeader.join(',') : reqHeader || ''
+}
+
+const getSecFetchHeaders = (req: IncomingMessage) => {
+  return {
+    secFetchSite: extractHeader(req, 'sec-fetch-site'),
+    secFetchMode: extractHeader(req, 'sec-fetch-mode'),
+    secFetchDest: extractHeader(req, 'sec-fetch-dest'),
+  }
+}
+
+const isString = (str: any): str is string => {
+  return typeof str === 'string'
+}
+
+const matchAllowedURL = (
+  list: (string | AllowedPath)[],
+  req: IncomingMessage
+): boolean => {
+  if (!Array.isArray(list)) return false
+
+  let { url = '', method = '' } = req
+
+  method = method.toUpperCase()
+
+  const match = list.find(item => {
+    const allowedPath: AllowedPath = isString(item) ? { path: item } : item
+
+    if (isString(allowedPath.method)) {
+      if (allowedPath.method.toUpperCase() !== method) {
+        return false
+      }
+    }
+
+    const pattern = new UrlPattern(allowedPath.path)
+    return !!pattern.match(url)
+  })
+
+  return !!match
+}
+
 function middlewareWrapper(config: Partial<Config> = {}) {
   const options = Object.assign(CONFIG_DEFAULTS, config)
 
   return function middleware(
     req: IncomingMessage,
     res: ServerResponse,
-    next: Next
+    next: NextFn
   ) {
     const { secFetchSite, secFetchMode, secFetchDest } = getSecFetchHeaders(req)
 
@@ -74,11 +110,7 @@ function middlewareWrapper(config: Partial<Config> = {}) {
     }
 
     // Explicitly allowed paths
-    // TODO: Improve this to match dynamic paths with optional patterns
-    if (
-      Array.isArray(options.allowedPaths) &&
-      options.allowedPaths.includes(req.url || '')
-    ) {
+    if (matchAllowedURL(options.allowedPaths, req)) {
       return next()
     }
 
