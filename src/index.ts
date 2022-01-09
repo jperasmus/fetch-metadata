@@ -40,9 +40,9 @@ const extractHeader = (req: IncomingMessage, header: string): string => {
 
 const getSecFetchHeaders = (req: IncomingMessage) => {
   return {
-    secFetchSite: extractHeader(req, 'sec-fetch-site'),
-    secFetchMode: extractHeader(req, 'sec-fetch-mode'),
-    secFetchDest: extractHeader(req, 'sec-fetch-dest'),
+    secFetchSite: extractHeader(req, 'sec-fetch-site').toLowerCase(),
+    secFetchMode: extractHeader(req, 'sec-fetch-mode').toLowerCase(),
+    secFetchDest: extractHeader(req, 'sec-fetch-dest').toLowerCase(),
   }
 }
 
