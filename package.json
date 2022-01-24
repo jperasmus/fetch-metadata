@@ -1,7 +1,7 @@
 {
   "name": "fetch-metadata",
   "description": "Node.js middleware for enforcing Fetch metadata request header checking",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "author": "JP Erasmus",
   "license": "MIT",
   "typings": "dist/index.d.ts",
