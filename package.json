@@ -1,8 +1,12 @@
 {
+  "name": "fetch-metadata",
+  "description": "Node.js middleware for enforcing Fetch metadata request header checking",
   "version": "0.3.0",
+  "author": "JP Erasmus",
   "license": "MIT",
-  "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/fetch-metadata.esm.js",
   "files": [
     "dist",
     "src"
@@ -25,6 +29,7 @@
     "fetch",
     "metadata",
     "request",
+    "security",
     "headers"
   ],
   "scripts": {
@@ -35,22 +40,18 @@
     "prepare": "tsdx build"
   },
   "peerDependencies": {},
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
+  "dependencies": {
+    "url-pattern": "^1.0.3"
   },
-  "name": "fetch-metadata",
-  "description": "Node.js middleware for enforcing Fetch metadata request header checking",
-  "author": "JP Erasmus",
-  "module": "dist/fetch-metadata.esm.js",
   "devDependencies": {
     "husky": "4.2.5",
     "tsdx": "0.13.2",
     "tslib": "2.0.1",
     "typescript": "3.9.7"
   },
-  "dependencies": {
-    "url-pattern": "^1.0.3"
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
   }
 }
